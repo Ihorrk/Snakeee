@@ -96,3 +96,8 @@ function draw() {
 
 // Запуск гри
 let game = setInterval(draw, 150);
+// Обробка екранних кнопок
+document.getElementById('up').addEventListener('click', () => { if (d != "DOWN") d = "UP"; });
+document.getElementById('down').addEventListener('click', () => { if (d != "UP") d = "DOWN"; });
+document.getElementById('left').addEventListener('click', () => { if (d != "RIGHT") d = "LEFT"; });
+document.getElementById('right').addEventListener('click', () => { if (d != "LEFT") d = "RIGHT"; });

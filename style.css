@@ -14,3 +14,12 @@ canvas {
     background-color: #000;
     border: 2px solid #fff;
 }
+.controls {
+    margin-top: 20px;
+}
+.controls button {
+    padding: 15px 20px;
+    font-size: 20px;
+    margin: 5px;
+    cursor: pointer;
+}
