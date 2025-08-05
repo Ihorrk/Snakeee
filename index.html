@@ -2,21 +2,16 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Гра Змійка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Змійка з Вибухами</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Змійка</h1>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-<div class="controls">
-  <button id="up">↑</button>
-  <div>
-    <button id="left">←</button>
-    <button id="down">↓</button>
-    <button id="right">→</button>
-  </div>
-</div>
+    <h1>Змійка з Вибухами</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <button id="restartButton" class="hidden">Почати заново</button>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

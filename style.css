@@ -1,25 +1,54 @@
 body {
-    background-color: #333;
-    color: #fff;
+    background-color: #000000; 
+    color: #ffffff; 
     font-family: Arial, sans-serif;
     text-align: center;
-    margin-top: 50px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden; 
 }
 
 h1 {
-    color: #eee;
+    font-weight: normal;
+}
+
+/* Новий контейнер для позиціонування кнопки над canvas */
+#game-container {
+    position: relative; /* Батьківський елемент для абсолютно позиціонованої кнопки */
 }
 
 canvas {
-    background-color: #000;
-    border: 2px solid #fff;
+    background-color: #000000; 
+    border: 2px solid #ffffff; 
+    touch-action: none; 
 }
-.controls {
-    margin-top: 20px;
-}
-.controls button {
-    padding: 15px 20px;
+
+/* Стилі для нової кнопки */
+#restartButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Центрування кнопки */
+    padding: 15px 30px;
     font-size: 20px;
-    margin: 5px;
+    color: #000;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 10px;
     cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#restartButton:hover {
+    background-color: #ccc;
+}
+
+/* Клас для приховування кнопки */
+.hidden {
+    display: none;
 }
