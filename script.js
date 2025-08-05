@@ -1,6 +1,5 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const restartButton = document.getElementById('restartButton');
 
 // --- Налаштування гри ---
 const size = Math.min(window.innerWidth * 0.95, window.innerHeight * 0.75);
@@ -8,7 +7,7 @@ canvas.width = size;
 canvas.height = size;
 const box = Math.floor(size / 20);
 
-// --- НОВИЙ СПИСОК ЦИТАТ ---
+// --- Список цитат ---
 const quotes = [
     "Спробуй ще! Цього разу без стін.",
     "Змійка втомилася і вирішила поспати.",
@@ -19,17 +18,26 @@ const quotes = [
     "Змійка вирішила стати колом. Невдало.",
     "Це не баг, це фіча - раптовий фінал.",
     "Наступного разу пощастить більше!",
-    "Здається, змійка з'їла щось не те."
+    "Здається, змійка з'їла щось не те.",
+    "Змійка пішла в офлайн. Повернеться пізніше.",
+    "Рахунок анульовано. Стіна заплатила хабар.",
+    "Ти був такий близький! .. до тієї стіни.",
+    "Помилка 404: шлях не знайдено.",
+    "Змійка практикує соціальне дистанціювання. Від самої себе.",
+    "Це був неконтрольований зріст. Треба було зупинитись.",
+    "Гадаєш, у тебе був поганий день? Подумай про цю змійку.",
+    "Термінове гальмування. В стіну.",
+    "Для такої довгої змійки потрібне більше поле.",
+    "Добре, що змійки не мають страхових компаній.",
+    "Це був стратегічний відступ. Прямо в себе.",
+    "Не хвилюйся, пікселі не постраждали.",
+    "Натисни \"Почати заново\", щоб зробити вигляд, що цього не було."
 ];
 
 // --- Ігрові змінні ---
-let score;
-let gameOver;
-let d;
-let snake;
-let food;
-let explosionParticles;
+let score, gameOver, d, snake, food, explosionParticles;
 const numParticles = 50;
+let restartButtonArea; // Область для нашої намальованої кнопки
 
 // --- Функція для ініціалізації/скидання гри ---
 function initGame() {
@@ -40,25 +48,38 @@ function initGame() {
     snake = [];
     snake[0] = { x: 9 * box, y: 10 * box };
 
-    food = {
-        x: Math.floor(Math.random() * 20) * box,
-        y: Math.floor(Math.random() * 20) * box
-    };
+    food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
 
     explosionParticles = [];
+    restartButtonArea = null; // Скидаємо область кнопки
 
-    restartButton.classList.add('hidden');
     if (game) clearInterval(game);
     game = setInterval(draw, 150);
 }
 
-// --- Керування (Клавіатура та Свайпи) ---
-let touchStartX = 0;
-let touchStartY = 0;
-canvas.addEventListener('touchstart', e => { e.preventDefault(); touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: false });
-canvas.addEventListener('touchend', e => { e.preventDefault(); handleSwipe(e.changedTouches[0].screenX, e.changedTouches[0].screenY); }, { passive: false });
-function handleSwipe(endX, endY) { if (gameOver) return; const dx = endX - touchStartX; const dy = endY - touchStartY; if (Math.abs(dx) > Math.abs(dy)) { if (dx > 30 && d !== "LEFT") d = "RIGHT"; else if (dx < -30 && d !== "RIGHT") d = "LEFT"; } else { if (dy > 30 && d !== "UP") d = "DOWN"; else if (dy < -30 && d !== "DOWN") d = "UP"; } }
+// --- Керування ---
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => { e.preventDefault(); if (gameOver) { handleRestartClick(e.changedTouches[0]); } else { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; } }, { passive: false });
+canvas.addEventListener('touchend', e => { e.preventDefault(); if (!gameOver) handleSwipe(e.changedTouches[0].screenX, e.changedTouches[0].screenY); }, { passive: false });
+canvas.addEventListener('click', e => { if (gameOver) handleRestartClick(e); });
+
+function handleSwipe(endX, endY) { const dx = endX - touchStartX; const dy = endY - touchStartY; if (Math.abs(dx) > Math.abs(dy)) { if (dx > 30 && d !== "LEFT") d = "RIGHT"; else if (dx < -30 && d !== "RIGHT") d = "LEFT"; } else { if (dy > 30 && d !== "UP") d = "DOWN"; else if (dy < -30 && d !== "DOWN") d = "UP"; } }
 document.addEventListener("keydown", event => { if (gameOver) return; if (event.keyCode == 37 && d != "RIGHT") d = "LEFT"; else if (event.keyCode == 38 && d != "DOWN") d = "UP"; else if (event.keyCode == 39 && d != "LEFT") d = "RIGHT"; else if (event.keyCode == 40 && d != "UP") d = "DOWN"; });
+
+// --- Логіка кліку по кнопці перезапуску ---
+function handleRestartClick(event) {
+    if (!restartButtonArea) return; // Якщо область кнопки ще не визначена
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Перевіряємо, чи клік був у межах нашої намальованої кнопки
+    if (clickX > restartButtonArea.x && clickX < restartButtonArea.x + restartButtonArea.w &&
+        clickY > restartButtonArea.y && clickY < restartButtonArea.y + restartButtonArea.h) {
+        initGame();
+    }
+}
+
 
 // --- Логіка зіткнень та вибуху ---
 function collision(head, array) { for (let i = 0; i < array.length; i++) { if (head.x === array[i].x && head.y === array[i].y) return true; } return false; }
@@ -69,43 +90,43 @@ function animateExplosion() {
     let hasParticles = false;
     for (let i = explosionParticles.length - 1; i >= 0; i--) {
         let p = explosionParticles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= 0.02;
+        p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
         if (p.alpha > 0) {
             hasParticles = true;
             ctx.fillStyle = `rgba(255, ${Math.floor(Math.random() * 155 + 100)}, 0, ${p.alpha})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
         }
     }
     if (hasParticles) {
         requestAnimationFrame(animateExplosion);
     } else {
-        // --- ОНОВЛЕНИЙ БЛОК ПІСЛЯ ВИБУХУ ---
-        // 1. Вибираємо випадкову цитату
+        // --- МАЛЮЄМО ВЕСЬ ЕКРАН "ГРИ ЗАКІНЧЕНО" ---
+        // Вибираємо цитату
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
-        // 2. Малюємо текст "Гру закінчено"
+        
+        // Малюємо "Гру закінчено"
         ctx.fillStyle = "white";
-        ctx.font = `${box * 2}px Arial`;
+        ctx.font = `bold ${box * 2}px Arial`;
         ctx.textAlign = "center";
-        ctx.fillText("Гру закінчено", canvas.width / 2, canvas.height / 2 - box * 2);
+        ctx.fillText("Гру закінчено", canvas.width / 2, canvas.height / 2 - box * 3);
 
-        // 3. Малюємо нашу випадкову цитату
-        ctx.font = `${box * 0.9}px Arial`; // Робимо шрифт трохи меншим
-        ctx.fillText(randomQuote, canvas.width / 2, canvas.height / 2 - box);
+        // Малюємо цитату
+        ctx.font = `${box * 1}px Arial`;
+        ctx.fillText(randomQuote, canvas.width / 2, canvas.height / 2 - box * 1.5);
 
-        // 4. Показуємо кнопку
-        restartButton.classList.remove('hidden');
+        // Малюємо кнопку
+        restartButtonArea = { x: canvas.width / 2 - box * 5, y: canvas.height / 2, w: box * 10, h: box * 2.5 };
+        ctx.fillStyle = "white";
+        ctx.fillRect(restartButtonArea.x, restartButtonArea.y, restartButtonArea.w, restartButtonArea.h);
+        ctx.fillStyle = "black";
+        ctx.font = `bold ${box * 1.2}px Arial`;
+        ctx.fillText("Почати заново", canvas.width / 2, restartButtonArea.y + restartButtonArea.h / 1.5);
     }
 }
 
 // --- Головний цикл гри ---
 function draw() {
     if (gameOver) return;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = (i === 0) ? "green" : "lime";
@@ -120,12 +141,8 @@ function draw() {
     ctx.textAlign = "left";
     ctx.fillText("Рахунок: " + score, box, box * 1.6);
     if (d) {
-        let snakeX = snake[0].x;
-        let snakeY = snake[0].y;
-        if (d === "LEFT") snakeX -= box;
-        if (d === "UP") snakeY -= box;
-        if (d === "RIGHT") snakeX += box;
-        if (d === "DOWN") snakeY += box;
+        let snakeX = snake[0].x, snakeY = snake[0].y;
+        if (d === "LEFT") snakeX -= box; if (d === "UP") snakeY -= box; if (d === "RIGHT") snakeX += box; if (d === "DOWN") snakeY += box;
         let newHead = { x: snakeX, y: snakeY };
         if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
             gameOver = true;
@@ -143,7 +160,6 @@ function draw() {
     }
 }
 
-// --- Запуск гри та подія для кнопки ---
+// --- Запуск гри ---
 let game;
-restartButton.addEventListener('click', initGame);
 initGame();
